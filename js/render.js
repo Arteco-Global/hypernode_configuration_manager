@@ -28,7 +28,7 @@ import {
   artecoLicenseOverviewSection,
   artecoSection,
 } from "./dom.js";
-import { IMPORT_KEYS } from "./constants.js";
+import { HIDDEN_IMPORT_KEYS, IMPORT_KEYS } from "./constants.js";
 import { t } from "./i18n.js";
 import { state } from "./state.js";
 import {
@@ -78,12 +78,10 @@ export function setLoginLoading(isLoading) {
 
 export function updateImportState(baseUrlReady) {
   const authReady = state.accessToken !== "";
-  const hasSelection = state.selectedImportKeys.size > 0;
-  const channelsSelected = state.selectedImportKeys.has("CHANNELS");
+  const hasSelection = [...state.selectedImportKeys].some((key) => !HIDDEN_IMPORT_KEYS.has(key));
   const mappingsReady = state.loadedMappingOld && state.loadedMappingNew;
-  const channelsReady = channelsSelected ? !!state.loadedConfig : true;
-  const associationsReady = channelsSelected ? areAssociationsComplete() && mappingsReady : true;
-  importBtn.disabled = !(baseUrlReady && authReady && hasSelection && channelsReady && associationsReady);
+  const associationsReady = hasSelection ? areAssociationsComplete() && mappingsReady : true;
+  importBtn.disabled = !(baseUrlReady && authReady && hasSelection && associationsReady);
 }
 
 export function updateExportState(baseUrlReady) {
@@ -369,7 +367,7 @@ export function renderImportKeyOptions(payloadByKey, onChange) {
   const checkboxByKey = new Map();
   const dependentKeys = ["SNAPSHOTS", "RECORDINGS", "EVENTS", "METADATA"];
   const dependentKeyState = new Map();
-  const hiddenKeys = new Set(["MAPPING", "EXPORTED_AT", "GATEWAY_VERSION"]);
+  const hiddenKeys = HIDDEN_IMPORT_KEYS;
 
   hiddenKeys.forEach((key) => {
     if (Object.prototype.hasOwnProperty.call(payloadByKey, key)) {

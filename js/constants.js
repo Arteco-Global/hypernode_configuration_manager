@@ -4,6 +4,8 @@ export const DEFAULT_RESET_SECRET = "HYPERNODE_RESET_6A9K3M2QX7";
 
 export const IMPORT_KEYS = [
   "CHANNELS",
+  "AUTOMATION",
+  "PERIPHERALS",
   "MAPPING",
   "SERVER",
   "USERS",
@@ -14,5 +16,7 @@ export const IMPORT_KEYS = [
   "EXPORTED_AT",
   "GATEWAY_VERSION",
 ];
+
+export const HIDDEN_IMPORT_KEYS = new Set(["MAPPING", "EXPORTED_AT", "GATEWAY_VERSION"]);
 
 export const BLOCKED_IMPORT_KEYS = new Set(["CORETRUST"]);

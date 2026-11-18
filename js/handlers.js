@@ -27,6 +27,7 @@ import {
   BACKUPS_AUTO_REFRESH_MS,
   BACKUPS_REQUEST_TIMEOUT_MS,
   DEFAULT_RESET_SECRET,
+  HIDDEN_IMPORT_KEYS,
 } from "./constants.js";
 import {
   areAssociationsComplete,
@@ -84,6 +85,10 @@ function getCredsReady() {
   return baseUrlInput.value.trim() !== "" &&
     usernameInput.value.trim() !== "" &&
     passwordInput.value !== "";
+}
+
+function hasSelectedImportData() {
+  return [...state.selectedImportKeys].some((key) => !HIDDEN_IMPORT_KEYS.has(key));
 }
 
 export function refreshUiState() {
@@ -597,12 +602,6 @@ export function handleConfigFile(event) {
       renderImportKeyOptions(state.loadedPayloadByKey, refreshUiState);
       updateImportSummary();
 
-      if (!state.loadedConfig) {
-        setStatus(importStatus, t("channelsNotFound"), true);
-        refreshUiState();
-        return;
-      }
-
       if (!state.loadedMappingOld) {
         setStatus(importStatus, t("mappingNotFound"), true);
         clearAssociationList(t("configNeedValidMapping"));
@@ -649,7 +648,7 @@ export async function handleImport() {
     setStatus(importStatus, t("loginNeedBeforeImport"), true);
     return;
   }
-  if (!state.loadedConfig) {
+  if (!hasSelectedImportData()) {
     setStatus(importStatus, t("configLoadFirst"), true);
     return;
   }
