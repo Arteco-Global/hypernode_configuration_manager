@@ -307,19 +307,6 @@ button.primary:not(:disabled):hover {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
-.associations {
-  margin-top: 16px;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px dashed var(--border);
-  background: #151c20;
-}
-
-.associations h3 {
-  margin: 0 0 12px;
-  font-size: 18px;
-}
-
 .import-loading {
   display: flex;
   flex-direction: column;
@@ -521,6 +508,61 @@ button.primary:not(:disabled):hover {
 .association-list {
   display: grid;
   gap: 10px;
+}
+
+.associations-accordion {
+  margin-top: 16px;
+  border-radius: 12px;
+  border: 1px dashed var(--border);
+  background: #151c20;
+}
+
+.associations-accordion summary {
+  list-style: none;
+  display: grid;
+  gap: 3px;
+  padding: 14px 44px 14px 16px;
+  cursor: pointer;
+  position: relative;
+}
+
+.associations-accordion summary::-webkit-details-marker {
+  display: none;
+}
+
+.associations-accordion summary::after {
+  content: "⌄";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  color: var(--muted);
+  font-size: 22px;
+  line-height: 1;
+  transform: translateY(-58%);
+  transition: transform 0.2s ease;
+}
+
+.associations-accordion[open] summary {
+  border-bottom: 1px dashed var(--border);
+}
+
+.associations-accordion[open] summary::after {
+  transform: translateY(-42%) rotate(180deg);
+}
+
+.associations-accordion-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.associations-accordion-hint {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.associations-accordion-content {
+  padding: 12px;
 }
 
 .association-card {

@@ -122,19 +122,24 @@
         </div>
 
         <div id="importBody">
-          <div class="associations">
-            <h3 data-i18n="associationsTitle">Associazioni servizi</h3>
-            <h5 data-i18n="associationsSubtitle">Servizio Precedente -> Nuovo servizio</h5>
           <div class="import-keys">
             <h4 data-i18n="keysToImportTitle">Chiavi da importare</h4>
             <div id="importKeyList" class="import-key-list">
               <div class="placeholder" data-i18n="loadConfigToSelectKeys">Carica un config.json per selezionare le chiavi.</div>
             </div>
           </div>
-          <div id="associationList" class="association-list">
-            <div class="placeholder" data-i18n="configNeedMappingAndNew">Carica entrambi i mapping per vedere le associazioni.</div>
-          </div>
-          </div>
+
+          <details class="associations-accordion">
+            <summary>
+              <span class="associations-accordion-title" data-i18n="associationsTitle">Associazioni servizi</span>
+              <span class="associations-accordion-hint" data-i18n="associationsSubtitle">Servizio Precedente -> Nuovo servizio</span>
+            </summary>
+            <div class="associations-accordion-content">
+              <div id="associationList" class="association-list">
+                <div class="placeholder" data-i18n="configNeedMappingAndNew">Carica entrambi i mapping per vedere le associazioni.</div>
+              </div>
+            </div>
+          </details>
 
           <button id="importBtn" class="primary" disabled data-i18n="importButton">Invia import</button>
           <div class="status" id="importStatus"></div>
