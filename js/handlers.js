@@ -56,6 +56,7 @@ import {
   applyGuidMapToConfig,
   extractConfigPayload,
   formatImportResponse,
+  hasOnlyExpectedImportDiagnostics,
   getCameraLicense,
   getCameraServiceGuid,
   getRawCameraEntries,
@@ -66,7 +67,6 @@ import {
   isImportKeyAllowed,
   normalizeBaseUrl,
   sanitizeFilenamePart,
-  escapeHtml,
   setStatus,
 } from "./utils.js";
 import {
@@ -140,25 +140,6 @@ function triggerBlobDownload(blob, filename) {
   link.click();
   link.remove();
   URL.revokeObjectURL(downloadUrl);
-}
-
-function formatResetResponse(payload) {
-  const parts = [];
-  if (payload?.message) {
-    parts.push(`<div>${escapeHtml(payload.message)}</div>`);
-  }
-
-  const data = payload?.data || {};
-  if (Array.isArray(data.errors) && data.errors.length > 0) {
-    const rows = data.errors.map((error) => `<li>${escapeHtml(error)}</li>`).join("");
-    parts.push(`<div>${t("resetErrors")}</div><ul>${rows}</ul>`);
-  }
-
-  if (parts.length === 0) {
-    return payload?.success === true ? "OK" : t("resetFailed");
-  }
-
-  return parts.join("");
 }
 
 function buildCameraLicenseKey(serviceGuid, cameraIndex) {
@@ -437,21 +418,15 @@ export async function handleReset() {
       DEFAULT_RESET_SECRET
     );
 
-    if (!response.ok) {
-      if (data) {
-        setStatus(resetStatus, formatResetResponse(data), true);
-        return;
-      }
-      throw new Error(t("httpError", { status: response.status }));
-    }
-
-    if (data) {
-      setStatus(resetStatus, formatResetResponse(data), data.success !== true);
-    } else {
+    if (response.ok && (!data || data.success === true)) {
       setStatus(resetStatus, t("resetCompleted"));
+    } else {
+      // Reset failures and backend diagnostics must never be exposed in the UI.
+      setStatus(resetStatus, "");
     }
   } catch (error) {
-    setStatus(resetStatus, t("resetError", { message: error.message }), true);
+    // Network and unexpected reset errors must never be exposed in the UI.
+    setStatus(resetStatus, "");
   } finally {
     refreshUiState();
   }
@@ -695,14 +670,18 @@ export async function handleImport() {
     const { response, data } = await importRequest(baseUrl, state.accessToken, importPayload);
     if (!response.ok) {
       if (data) {
-        setStatus(importStatus, formatImportResponse(data), true);
+        setStatus(importStatus, formatImportResponse(data), !hasOnlyExpectedImportDiagnostics(data));
         return;
       }
       throw new Error(t("httpError", { status: response.status }));
     }
 
     if (data) {
-      setStatus(importStatus, formatImportResponse(data), data.success !== true);
+      setStatus(
+        importStatus,
+        formatImportResponse(data),
+        data.success !== true && !hasOnlyExpectedImportDiagnostics(data)
+      );
     } else {
       setStatus(importStatus, t("importFailed"), true);
     }

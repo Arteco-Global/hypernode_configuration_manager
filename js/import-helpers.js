@@ -277,13 +277,17 @@ export function applyGuidMapToConfig(config, guidMap) {
 
 export function formatImportResponse(payload) {
   const parts = [];
-  const message = payload.message || (payload.success === true ? "OK" : t("importFailed"));
+  const expectedOnly = hasOnlyExpectedImportDiagnostics(payload);
+  const message = expectedOnly
+    ? t("importCompleted")
+    : payload.message || (payload.success === true ? "OK" : t("importFailed"));
   parts.push(`<div>${escapeHtml(message)}</div>`);
 
   const data = payload.data || {};
 
   if (Array.isArray(data.associationResults) && data.associationResults.length > 0) {
     const rows = data.associationResults
+      .filter((item) => !isExpectedImportDiagnostic(item))
       .map(
         (item) =>
           `<li>${escapeHtml(item.type || t("associationType"))}: ${escapeHtml(
@@ -291,7 +295,9 @@ export function formatImportResponse(payload) {
           )}</li>`
       )
       .join("");
-    parts.push(`<div>${t("associations")}</div><ul>${rows}</ul>`);
+    if (rows) {
+      parts.push(`<div>${t("associations")}</div><ul>${rows}</ul>`);
+    }
   }
 
   if (Array.isArray(data.userResults) && data.userResults.length > 0) {
@@ -305,9 +311,43 @@ export function formatImportResponse(payload) {
   }
 
   if (Array.isArray(data.errors) && data.errors.length > 0) {
-    const rows = data.errors.map((error) => `<li>${escapeHtml(error)}</li>`).join("");
-    parts.push(`<div>${t("resetErrors")}</div><ul>${rows}</ul>`);
+    const rows = data.errors
+      .filter((error) => !isExpectedImportDiagnostic(error))
+      .map((error) => `<li>${escapeHtml(error)}</li>`)
+      .join("");
+    if (rows) {
+      parts.push(`<div>${t("resetErrors")}</div><ul>${rows}</ul>`);
+    }
   }
 
   return parts.join("");
+}
+
+function diagnosticText(diagnostic) {
+  if (typeof diagnostic === "string") {
+    return diagnostic;
+  }
+  if (diagnostic && typeof diagnostic === "object") {
+    return diagnostic.message || diagnostic.error || "";
+  }
+  return "";
+}
+
+function isExpectedImportDiagnostic(diagnostic) {
+  const text = diagnosticText(diagnostic).toLowerCase();
+  return (
+    text.includes("invalid automation conditions") ||
+    (text.includes("event association") &&
+      (text.includes("not imported") || text.includes("not mapped") || text.includes("unmapped")))
+  );
+}
+
+export function hasOnlyExpectedImportDiagnostics(payload) {
+  const data = payload?.data || {};
+  // associationResults and userResults contain successful import outcomes too
+  // (for example, "Documents inserted"). Only data.errors determines whether
+  // the import has backend diagnostics that should affect the status color.
+  const diagnostics = Array.isArray(data.errors) ? data.errors : [];
+
+  return diagnostics.length > 0 && diagnostics.every(isExpectedImportDiagnostic);
 }
